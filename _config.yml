@@ -1,3 +1,4 @@
 name: Ember Bites
 markdown: redcarpet
 pygments: true
+baseurl: emberbites.com

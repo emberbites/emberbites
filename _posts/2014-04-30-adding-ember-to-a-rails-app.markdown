@@ -306,7 +306,7 @@ When we refresh this page, we'll see the posts now displaying with the power of 
 
 ## Retrospective #1: Posts displaying
 
-Our code is so far pretty simple. We've got an Ember application defined within `app/assets/application.js.coffee`, a model within `app/assets/models/post.js.coffee`, a route within `app/assets/routes/index.js.coffee` and a template at `app/assets/javscripts/templates/index.js.coffee`. Ember is automatically routing to the index route, which is handled with `Blorgh.IndexRoute`. `Blorgh.IndexRoute` collects the information it needs from `Blorgh.Post.findAll()`, and finally displays that within the one and only template in our application.
+Our code is so far pretty simple. We've got an Ember application defined within `app/assets/application.js.coffee`, a model within `app/assets/models/post.js.coffee`, a route within `app/assets/routes/index.js.coffee` and a template at `app/assets/javscripts/templates/index.hbs`. Ember is automatically routing to the index route, which is handled with `Blorgh.IndexRoute`. `Blorgh.IndexRoute` collects the information it needs from `Blorgh.Post.findAll()`, and finally displays that within the one and only template in our application.
 
 ## Viewing a single post
 
@@ -649,125 +649,6 @@ Let's implement the `destroy` function in `app/javascripts/models/post.js.coffee
 ```
 
 When we refresh the post's page, we should see the 'destroy' link now. When we click it, we'll be asked if we are sure if we want to delete this post. If we click "OK", then the post will be deleted and we'll be sent back home.
-
-## Ember Data
-
-Now that we have all of these actions in place, our `Blorgh.Post` model has become the largest piece of code in our Ember app. We wrote all that code ourselves so that we could learn how all the pieces of Ember fit together. Designing models like we have is not the best practice in the Ember community. The best practice is to use another piece of Ember called Ember Data.
-
-Ember Data provides some adapters and serializers that make working with APIs easier. Without Ember Data, we would need to write the same old boilerplate code for our models and that would be no fun, so let's go ahead now and replace the code in our model with something more conventional.
-
-To begin with, we're going to need to add a require for `ember-data` to our `app/assets/javascripts/application.js.coffee` line, directly under the require for `ember`:
-
-```coffee
-#= require jquery
-#= require jquery_ujs
-#= require handlebars
-#= require ember
-#= require ember-data
-#= require_self
-#= require blorgh
-```
-
-For Ember Data to work properly, our Ember application needs an adapter so that it can talk with our API. We can define one of these now in a new file called `app/assets/javascripts/store.js.coffee`:
-
-```coffee
-  Backend.ApplicationAdapter = DS.ActiveModelAdapter.extend
-    namespace: 'api'
-```
-
-We're extending from `ActiveModelAdapter` here because our API closely matches the API expected by Ember's `ActiveModelAdapter`. It doesn't *quite* match -- as we'll see a little later -- but it's close enough. Inside this new adapter we define a `namespace` which Ember will scope all requests to, so instead of looking for posts at `/posts`, it will look for them at `/api/posts` instead.
-
-To begin using this adapter, let's delete the `app/assets/javascripts/models/post.js.coffee` file's content and start anew.
-
-```coffee
-Blorgh.Post = DS.Model.extend
-  title: DS.attr('string')
-  text: DS.attr('string')
-```
-
-To define a model that uses `Blorgh.ApplicationAdapter`, all we need to do is extend `DS.Model` and define the attributes that we care about, in this case `title` and `text` are all we care about in a post so far. We define them like this so that Ember Data loads them from the result.
-
-Let's see if this is working by making a new request to the root of our application. We should see all the posts that we've got. 
-
-![Ember Posts](/images/2014-04-30/ember_posts.png)
-
-Clicking on a post's title should still take you to that post's page. 
-
-![Ember Post](/images/2014-04-30/ember_post.png)
-
-That's a good start. Ember data is working just fine, or so we think. If we refresh this page, we'll come up against our first Ember Data incompatibility, which we'll see in the JavaScript console:
-
-```
-Error while loading route: Error: No model was found for 'id'
-```
-
-The code is claiming that it cannot find a model for `id`, but nowhere are we asking it to do that. What's actually happening is that Ember is inferring the model name from the first parameter which is sent back in the response from `/api/posts/:id`, which just so happens to be `id`. 
-
-We need to give Ember the correct format of our data, and the way to do that is to create a new serializer. Serializers in Ember Data can be used to modify the response coming back from the server and massage it into an appropriate format. Let's define this new serializer in `app/assets/javascripts/store.js.coffee`:
-
-```coffee
-Blorgh.ApplicationSerializer = DS.ActiveModelSerializer.extend
-  # Turns { id: 1, ... } into something like { post: { id: 1, ... } }
-  extractSingle: (store, type, oldPayload) ->
-    newPayload = {}
-    newPayload[type.typeKey] = oldPayload
-
-    this._super(store, type, newPayload)
-```
-
-In order to massage the post response that's coming back from `/api/posts/:id`, we need to define an `extractSingle` method on `Blorgh.ApplicationSerializer`. This method takes the Ember Data store object, the type of object we're loading, and the payload which represents the response from the API. `type.typeKey` here will return `post`, and so `newPayload` will be something like `{ post: { id: 1, ... } }`, which will make Ember happy. We call `this._super` at the end of this method in order to call the original `extractSingle` method which is defined within `DS.ActiveModelSerializer`.
-
-When we refresh the post page again, we should be able to see the post we want. As an added bonus of this, our editing of that post will work also. Go on, give it a go!
-
-The 'Destroy' link is a whole other story. When we attempt to delete a post, we'll see this error:
-
-```
-Error while loading route: TypeError: Cannot read property 'pushedData' of null
-```
-
-The trace of this error isn't that helpful, so let's track down what's happening here by walking through it. It all starts with the destroy action within `app/assets/javascripts/templates/post.hbs`:
-
-```html
-{%raw%}
-<h2>{{title}}</h2>
-<div>
-  {{#link-to 'posts.edit' this}}Edit{{/link-to}}
-  <a {{action 'destroy'}}>Destroy</a>
-</div>
-{{text}}
-{%endraw%}
-```
-
-This action is handled by `Blorgh.PostController`:
-
-```coffee
-Blorgh.PostController = Ember.ObjectController.extend
-  actions:
-    destroy: ->
-      if confirm('Are you sure you want to delete this post?')
-        this.content.destroy()
-        this.transitionTo('index')
-```
-
-The `destroy` method that we're calling here... how can we be sure if that's the right method? Well, we can't be sure unless we check [the documentation](http://emberjs.com/guides/models/creating-and-deleting-records/#toc_deleting-records), which says that we should call `.deleteRecord` and then `save` to actually delete a record. So let's change this controller now:
-
-```coffee
-Blorgh.PostController = Ember.ObjectController.extend
-  actions:
-    destroy: ->
-      if confirm('Are you sure you want to delete this post?')
-        this.content.deleteRecord()
-        this.content.save()
-        this.transitionTo('index')
-```
-
-Let's refresh the page and try deleting that post again. It will now disappear, as it should!
-
-We've now got `index`, `show`, `edit`, `update` and `destroy` covered. All that's left to make sure still works is the `new` and `create` actions. Let's go back to the root of the blog and try to create a new post now. That whole process should work.
-
-## Retrospective #2: Ember Data
-
-As we can see here, Ember Data makes it exceptionally simple to interact with an API to create, read, update and destroy records. There's no need yet for us to write our own code to interact with the API; all the standard actions have been taken care of.
 
 ## Creating Comments
 

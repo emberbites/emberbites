@@ -622,7 +622,7 @@ Now we've completed adding the `edit` and `update` functionality to our posts re
 <h2>{{title}}</h2>
 <div>
   {{#link-to 'posts.edit' this}}Edit{{/link-to}} |
-  <a {{action=destroy}}>Destroy</a>
+  <a {{action 'destroy' this}}>Destroy</a>
 </div>
 {{text}}
 {%endraw%}
@@ -636,9 +636,10 @@ Blorgh.PostController = Ember.ObjectController.extend
     destroy: ->
       if confirm('Are you sure you want to delete this post?')
         this.content.destroy()
+        this.transitionTo('index')
 ```
 
-In the controller, we can reference the current model instance with `this.content` rather than `this.currentModel`. We first ask for confirmation of the deletion of this post and if it's confirmed then we call `destroy` on it which should trigger the destruction of this post.
+In the controller, we can reference the current model instance with `this.content` rather than `this.currentModel`. We first ask for confirmation of the deletion of this post and if it's confirmed then we call `destroy` on it which should trigger the destruction of this post. Then we transition to the index. (Otherwise there is little indication that we actually did anything.)
 
 Let's implement the `destroy` function in `app/javascripts/models/post.js.coffee` like this:
 

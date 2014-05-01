@@ -32,7 +32,7 @@ To install Ember into this application, we'll need to install the `ember-rails` 
 
 ```ruby
 gem 'ember-rails'
-gem 'ember-source', '1.4.0'
+gem 'ember-source', '1.5.1.1'
 ```
 
 Then we can run `bundle install` to install these gems.

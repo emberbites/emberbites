@@ -4,6 +4,8 @@ title:  "#3 - Ember.TextField events"
 date:   2014-05-02 08:00:00
 ---
 
+**THIS POST IS A WORK IN PROGRESS**
+
 [The application code for this bite is available on GitHub.](https://github.com/emberbites/3-ember-and-select2)
 
 In this bite, we'll be building upon our [previous example](http://emberbites.com/2014/05/01/ember-textfield-events.html). In that example, we had an `Ember.Textfield` that had a `change` event which displayed the name that was entered. With this example, we'll extend that to be a select2 field from which we can pick people's names and then it will display information about whoever we choose.

@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "#2 - Ember.TextField events"
-date:   2014-05-01 08:00:00
+permalink: 2-ember-textfield-events
 ---
 
 [The application code for this bite is available on GitHub.](https://github.com/emberbites/2-textfield-events)

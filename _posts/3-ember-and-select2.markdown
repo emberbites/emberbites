@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "#3 - Ember and Select2"
-date:   2014-05-02 08:00:00
+permalink: 3-ember-and-select2
 ---
 
 [The application code for this bite is available on GitHub.](https://github.com/emberbites/3-ember-and-select2)

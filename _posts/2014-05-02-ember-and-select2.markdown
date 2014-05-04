@@ -4,8 +4,6 @@ title:  "#3 - Ember.TextField events"
 date:   2014-05-02 08:00:00
 ---
 
-**THIS POST IS A WORK IN PROGRESS**
-
 [The application code for this bite is available on GitHub.](https://github.com/emberbites/3-ember-and-select2)
 
 In this bite, we'll be building upon our [previous example](http://emberbites.com/2014/05/01/ember-textfield-events.html). In that example, we had an `Ember.Textfield` that had a `change` event which displayed the name that was entered. With this example, we'll extend that to be a select2 field from which we can pick people's names and then it will display information about whoever we choose.
@@ -24,7 +22,7 @@ bundle exec rake db:setup
 When we navigate to the root of this application, Ember handles the request with it's `IndexRoute` which renders the template from `app/assets/javascripts/templates/index.hbs`:
 
 ```html
-{%raw%]
+{%raw%}
 <h1>Who do you want to know about?</h1>
 
 <p>
@@ -44,6 +42,7 @@ When we navigate to the root of this application, Ember handles the request with
   </dl>
 {{/if}}
 {%endraw%}
+```
 
 This template renders the familiar `EmberStore.NameField` component from Bite #2, but uses the `showInfo` action instead. The idea about this template is the same: the `showInfo` action should set the `person` property, and then once that's set we should be able to display some content in the page.
 

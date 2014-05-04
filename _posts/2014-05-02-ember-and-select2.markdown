@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "#3 - Ember.TextField events"
+title:  "#3 - Ember and Select2"
 date:   2014-05-02 08:00:00
 ---
 

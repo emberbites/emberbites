@@ -2,6 +2,7 @@
 layout: post
 title:  "#1 - Adding Ember to a Rails app"
 permalink: 1-adding-ember-to-a-rails-app
+date: 2014-04-30
 ---
 
 *Thanks to Robin Ward who has a lot of great Ember content on [his blog](http://eviltrout.com). Some of his posts, such as [Ember without Ember Data](http://eviltrout.com/2013/03/23/ember-without-data.html) have inspired this guide*.

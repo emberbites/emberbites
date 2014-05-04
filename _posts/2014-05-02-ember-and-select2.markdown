@@ -74,5 +74,41 @@ EmberStore.NameField = Em.TextField.extend
 
 Inside this component, we've got two functions: the `change` function which is triggered when the name field changes, and then a new function called `didInsertElement`, which is callled as soon as the element has been inserted into the page by Ember.
 
-The `didInsertElement` method finds the current element's ID and calls `select2` on it, setting that up to make an AJAX call to an API endpoint at `/api/people`. The data returned by this endpoint is restricted by the `data` option we've passed here, which tells the API we only want people who have first names or last names that contain the text we've entered into the text field. The `results` function just formats the results in a way that Select2 can understand. The `formatResult` function tells Select2 what to display for our results, and `formatSelection` sets the property `person` once we've made an actual selection.
+The `didInsertElement` method finds the current element's ID and calls `select2` on it, setting that up to make an AJAX call to an API endpoint at `/api/people`. The data returned by this endpoint is restricted by the `data` option we've passed here, which tells the API we only want people who have first names or last names that contain the text we've entered into the text field. The `results` function just formats the results in a way that Select2 can understand. The `formatResult` function tells Select2 what to display for our results in the dropdown list, and `formatSelection` tells Select2 how to display the item once selected. We're causing this function to have a second purpose, which is to set the `person` property once that selection has been made.
+
+Immediately after the selection has been made, the `change` event fires and sends the action with the `person` property. The action to be sent was defined in our template like this:
+
+```html
+{%raw %}
+  {{view EmberStore.NameField action='showInfo'}}
+{% endraw %}
+```
+
+The `showInfo` action is defined within the controller for that template, which is located at `app/assets/javascripts/controllers/index.js.coffee`:
+
+```coffee
+EmberStore.IndexController = Ember.Controller.extend
+  actions:
+    showInfo: (person) ->
+      this.set('person', person)
+```
+
+All this action needs to do is take the argument that is passed to it from the `sendAction` call, and set the `person` property. Once that's set, the code in the `index` template will display information about that user:
+
+```html
+{% raw %}
+{{#if person}}
+  <h3>
+    Here's some info about {{person.first_name}} {{person.last_name}}:
+  </h3>
+
+  <dl>
+    <dt>Age:</dt>
+    <dd>{{person.age}}</dd>
+    <dt>Job Title:</dt>
+    <dd>{{person.job_title}}</dd>
+  </dl>
+{{/if}}
+{% endraw %}
+```
 

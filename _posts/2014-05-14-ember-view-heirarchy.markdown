@@ -38,17 +38,17 @@ To jump between the index and the new item route, there is this code in the appl
 **app/assets/javascripts/templates/order/index.hbs**
 
 ```html
-%{raw}
+{%raw%}
 <p>{{#link-to 'items.new'}}Add Item{{/link-to}}</p>
-%{endraw}
+{%endraw%}
 ```
 
 **app/assets/javascripts/templates/items/new.hbs**
 
 ```html
-%{raw}
+{%raw%}
 <p>{{#link-to 'order.index'}}Back to order{{/link-to}}</p>
-%{endraw}
+{%endraw%}
 ```
 
 Ember is smart enough to know here that, in the first instance, we want to go to the "/items/new" route for this order. It's also smart enough, in the second instance, to know which order want to go back to.

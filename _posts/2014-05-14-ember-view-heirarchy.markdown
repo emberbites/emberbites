@@ -2,7 +2,7 @@
 layout: post
 title:  "#4 - Ember View Heirarchy"
 permalink: 4-ember-view-heirarchy
-date: 2014-05-02
+date: 2014-05-14
 ---
 
 [The application code for this bite is available on GitHub.](https://github.com/emberbites/4-ember-view-heirarchy)

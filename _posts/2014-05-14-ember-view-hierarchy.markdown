@@ -13,7 +13,7 @@ Here's two images that might help you wrap your head around how Ember's views wo
 
 ![View Hierarchy](/images/2014-05-12/view-hierarchy.png)
 
-In this first example, we're visiting a route that's something such as `/orders/1`. Ember knows by default to render the application view (if it's available), and that's what it does. This gets us the "Ember Store" title of the page. Next, Ember will render the `order.hbs` template, to show us the "Order 1" title underneath the "Ember Store" title. Finally, it will render the `order/index.hbs` template, giving us the "Add Item" link. This last template only shows up because we have an `{{outlet}}` defined within the `order.hbs` template:
+In this first example, we're visiting a route that's something such as `/orders/1`. Ember knows by default to render the application view (if it's available), and that's what it does. This gets us the "Ember Store" title of the page. Next, Ember will render the `order.hbs` template, to show us the "Order 1" title underneath the "Ember Store" title. Finally, it will render the `order/index.hbs` template, giving us the "Add Item" link. This last template only shows up because we have an `{%raw%}{{outlet}}{%endraw}` defined within the `order.hbs` template:
 
 ```html
 {%raw%}
@@ -23,7 +23,7 @@ In this first example, we're visiting a route that's something such as `/orders/
 {%endraw%}
 ```
 
-This is the exact same style of `{{outlet}}` that we use within `application.hbs`:
+This is the exact same style of `{%raw%}{{outlet}}{%endraw}` that we use within `application.hbs`:
 
 ```html
 {%raw%}

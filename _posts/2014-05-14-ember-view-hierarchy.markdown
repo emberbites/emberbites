@@ -13,8 +13,29 @@ Here's two images that might help you wrap your head around how Ember's views wo
 
 ![View Hierarchy](/images/2014-05-12/view-hierarchy.png)
 
-In this first example, we're visiting a route that's something such as `/orders/1`. Ember knows by default to render the application view (if it's available), and that's what it does. This gets us the "Ember Store" title of the page. Next, Ember will render the `order.hbs` template, to show us the "Order 1" title underneath the "Ember Store" title. Finally, it will render the "order/index.hbs" template, giving us the "Add Item" link.
+In this first example, we're visiting a route that's something such as `/orders/1`. Ember knows by default to render the application view (if it's available), and that's what it does. This gets us the "Ember Store" title of the page. Next, Ember will render the `order.hbs` template, to show us the "Order 1" title underneath the "Ember Store" title. Finally, it will render the `order/index.hbs` template, giving us the "Add Item" link. This last template only shows up because we have an `{{outlet}}` defined within the `order.hbs` template:
 
+```html
+{%raw%}
+<h2>{{name}}</h2>
+<p>{{#link-to 'index'}}Order List{{/link-to}}</p>
+{{outlet}}
+{%endraw%}
+```
+
+This is the exact same style of `{{outlet}}` that we use within `application.hbs`:
+
+```html
+{%raw%}
+<h1>Ember Store</h1>
+
+{{outlet}}
+{%endraw%}
+```
+
+Ember is rendering the application template which defines an outlet. Then the `order.hbs` template is rendered into that outlet's location. Right after that, `order/index.hbs` is rendered and that content is placed into the outlet defined within `order.hbs`.
+
+Let's look at the other example:
 
 ![View Hierarchy 2](/images/2014-05-12/view-hierarchy-2.png)
 

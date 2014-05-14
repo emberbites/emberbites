@@ -329,15 +329,15 @@ The first part of this will be to turn the post's title into a link which will t
 If we refresh the page now, it will show nothing on the page because Ember's now showing an error:
 
 ```
-Uncaught Error: Assertion Failed:
-  The attempt to link-to route 'post' failed (also tried 'posts.show.index').
-  The router did not find 'posts.show' in its possible routes:
-  'loading',
-  'error',
-  'index'
+Uncaught Error: Assertion Failed: The attempt to link-to route 'post' failed. 
+  The router did not find 'post' in its possible routes: 
+    'loading',
+    'error',
+    'index',
+    'application' 
 ```
 
-Ember is complaining here that there is no route for `posts.show`, which is true. Ember creates the `index`, `error` and `loading` routes itself, but will not assume any routes past that.
+Ember is complaining here that there is no route for `post`, which is true. Ember creates the `index`, `error` and `loading` routes itself, but will not assume any routes past that.
 
 We can define this route in `app/assets/javascripts/router.js.coffee` by using this code:
 
@@ -346,7 +346,9 @@ Blorgh.Router.map ()->
   @resource 'post', path: '/posts/:post_id'
 ```
 
-The `resource` function defines a new route for our Ember app. We're using `:post_id` (instead of `:id`) here as Ember will infer from that that we want to load from the `Post` model in our app.
+The `resource` function defines not one, but a couple of new routes for our Ember app. It generates `PostRoute`, as well as `PostIndexRoute`. We'll see the difference between these two routes at a later stage in these guides.
+
+We're using `:post_id` (instead of `:id`) here as Ember will infer from that that we want to load from the `Post` model in our app.
 
 When we refresh our app again, we will now be able to click on a post's link and go to that post's page. That doesn't currently display anything and the console again will tell us why:
 
@@ -424,10 +426,23 @@ We're using a new route here called `posts.new`. Just like with the `post` route
 ```coffee
 Blorgh.Router.map ()->
   @resource 'post', path: '/posts/:post_id'
-  @resource 'posts.new', path:'/posts/new'
+  @resource 'posts', ->
+    @route 'new'
 ```
 
-For this route to do anything, we will need to create a template at `app/assets/javascripts/templates/posts/new.hbs`:
+These two lines generate the required routes, but also generate an extra `PostsRoute`. If we go to http://localhost:3000/#/posts now, we'll see nothing but a blank page. This is no good. When people go to `/posts` in our Ember app, they should see a list of posts!
+
+To fix this, we'll create a new file at `app/assets/javascripts/routes/posts.js.coffee` and put this content into it:
+
+```coffee
+Blorgh.PostsRoute = Ember.Route.extend
+  beforeModel: ->
+    this.transitionTo('index')
+```
+
+This code will tell Ember that before it does *anything* about this route, to actually transition the browser over to the index route. That way, people will be seeing the posts rendered by the index template, just as we have intended it.
+
+Now back to the `posts.new` route. For this route to do anything, we will need to create a template at `app/assets/javascripts/templates/posts/new.hbs`:
 
 ```html
 {%raw%}
@@ -516,30 +531,35 @@ This `link-to` is using a new route called `posts.edit`, which we should now def
 
 ```coffee
 Blorgh.Router.map ()->
-  @resource 'post', path: '/posts/:post_id'
-  @resource 'posts.new', path:'/posts/new'
-  @resource 'posts.edit', path: '/posts/:post_id/edit'
+  @resource 'post', path: '/posts/:post_id', ->
+    @route 'edit'
+  @resource 'posts', ->
+    @route 'new'
 ```
 
-After defining the route, the next step is to create a template which we can do in `app/assets/javascripts/templates/posts/edit.hbs`.
+Now in our router we have a sub-route underneath our `post` resource. This will give us the `posts/:post_id/edit` route that we need, that will eventually show a form to edit a post.
+
+After defining the route, the next step is to create a template which we can do in `app/assets/javascripts/templates/post/edit.hbs`.
 
 ```html
 {%raw%}
 <h2>Editing Post {{title}}</h2>
-{{ partial 'posts/form' }}
+{{ partial 'post/form' }}
 {%endraw%}
 ```
+
+Note here that we're putting this into a directory called `post`, whereas the `new` template went into one called `posts`. This is because the edit template is for editing a particular post and the template is rendered from a sub-route of the `post` resource. The `new` template is rendered from a sub-route of the `posts` resource. Therefore, it's `templates/posts/new.hbs` for the new template, and `templates/post/edit.hbs` for the edit template.
 
 Within this template, we're using another Ember helper: `partial`. This will render a Handlebars template in that place, just like partial rendering works within Rails. Let's create this partial by taking out most of the content in `app/assets/javascripts/templates/posts/new.hbs` and turning it into this:
 
 ```html
 {%raw%}
 <h2>New Post</h2>
-{{ partial 'posts/form' }}
+{{ partial 'post/form' }}
 {%endraw%}
 ```
 
-To define the partial, we need to create a new template at `app/assets/javascripts/templates/posts/_form.hbs`:
+To define the partial, we need to create a new template at `app/assets/javascripts/templates/post/_form.hbs`:
 
 ```html
 {%raw%}
@@ -559,22 +579,32 @@ To define the partial, we need to create a new template at `app/assets/javascrip
 
 This partial template will now be used by both the new form and the edit form.
 
-Let's refresh the page and click "Edit" for that post that we just created. We should see be on the edit route now, but the form is blank, which is no good!
+Let's refresh the page and click "Edit" for that post that we just created. Nothing happens! This is because of how Ember routing works. Ember will render the template within `app/assets/javascripts/templates/post.hbs` for the `Blorgh.PostRoute`. For `Blorgh.PostEditRoute`, it attempts to render this template *inside* of the `post.hbs` template, into an outlet. But since there is no outlet defined within that file, nothing happens!
 
-![Ember Blank Edit Post](/images/2014-04-30/ember_blank_edit_post.png)
+To fix this, we need to move the contents of `app/assets/javascripts/templates/post.hbs` into `app/assets/javascripts/templates/post/index.hbs`. The `index` name here is not be confused with what Rails thinks is an index. What this is, is actually the "root" of the resource: `/posts/:post_id`, and the route is actually `Blorgh.PostIndexRoute`, and not `Blorgh.PostRoute`.
 
-This is happening because we have not told the route what model to load. Let's define this route now within `app/assets/javascripts/routes/posts/edit.js.coffee`:
+This `index.hbs` template is what should be rendered when we're at the top-level of this resource, when we're at `/posts/:post_id`. The `app/assets/javascripts/templates/post.hbs` template is just a wrapper around all the sub-routes, such as `/posts/:post_id/edit`. If we had any content that we wished to display on *all* the routes for this resource, we would place it within the `post.hbs` template.
+
+Since we don't have anything that we want to display commonly, but we still want it to actually show us our edit form, we'll turn `post.hbs` into just this:
+
+```html
+{%raw%}
+{{outlet}}
+{{%endraw%}}
+```
+
+The `outlet` call here is similar to Rails's `<%= yield %>`, in that it tells Ember where to put content. The "content" in this case is going to be the form for editing a post (`app/assets/javascripts/templates/post/edit.hbs`) if we're at `/posts/:post_id/edit`, or the post itself (`app/assets/javascripts/templates/post/index.hbs`), if we're at the root route of `/posts/:post_id`.
+
+Let's refresh the page again. Now we should see the edit form with the post information visible. For this "Save Post" button to work, we're going to need to define an action *somewhere*. That *somewhere* is within `Blorgh.PostRoute`:
 
 ```coffee
-Blorgh.PostsEditRoute = Ember.Route.extend
+Blorgh.PostRoute = Ember.Route.extend
   actions:
     save: ->
       route = this
       this.currentModel.save().then (model) ->
         route.transitionTo('post', model)
 ```
-
-Unlike the `PostsNewRoute`, we don't need to define a `model` function here. The reason for that is because Ember will infer that we want to look up on the `Post` route automatically because our route is defined as `/posts/:post_id/edit`, with the `:post_id` part being how the inferrence is happening.
 
 The `save` action in this route is the same as it was in `PostsNewRoute`, we just call `save()` on the current model and transition back to the post route.
 
@@ -629,10 +659,10 @@ Now we've completed adding the `edit` and `update` functionality to our posts re
 {%endraw%}
 ```
 
-We will need to implement this action on the controller instead of the route for this template, which would be `Blorgh.PostController`, which we will need to define in `app/assets/javascripts/controllers/post.js.coffee`:
+We will need to implement this action in the `Blorgh.PostRoute`:
 
 ```coffee
-Blorgh.PostController = Ember.ObjectController.extend
+Blorgh.PostRoute = Ember.Route.extend
   actions:
     destroy: ->
       if confirm('Are you sure you want to delete this post?')
